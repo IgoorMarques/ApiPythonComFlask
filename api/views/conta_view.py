@@ -57,5 +57,6 @@ class ContaDetail(Resource):
         conta_service.excluir_conta(conta)
         return make_response(jsonify(""), 204)
 
+
 api.add_resource(ContaList, '/contas')
 api.add_resource(ContaDetail, '/contas/<int:id>')
