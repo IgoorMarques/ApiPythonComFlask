@@ -1,5 +1,6 @@
 from api import db
 from ..models import operacao_model
+from ..services import conta_service
 
 
 def cadastrar_operacao(operacao):
@@ -7,10 +8,38 @@ def cadastrar_operacao(operacao):
         nome=operacao.nome,
         resumo=operacao.resumo,
         custo=operacao.custo,
-        tipo=operacao.tipo
+        tipo=operacao.tipo,
+        conta_id=operacao.conta
     )
     db.session.add(operacao_db)
     db.session.commit()
+    conta_service.altera_saldo_conta(operacao.conta, operacao, 1)
     return operacao_db
 
 
+def atualizar_operacao(operacao, operacao_nova):
+    valor_antigo = operacao.custo
+    operacao.nome = operacao_nova.nome
+    operacao.resumo = operacao_nova.resumo
+    operacao.custo = operacao_nova.custo
+    operacao.tipo = operacao_nova.tipo
+    operacao.conta = operacao_nova.conta
+    db.session.commit()
+    conta_service.altera_saldo_conta(operacao_nova.conta, operacao_nova, 2, valor_antigo)
+    return operacao
+
+
+def listar_operacoes():
+    operacoes = operacao_model.Operacao.query.all()
+    return operacoes
+
+
+def listar_operacao_id(id):
+    operacao = operacao_model.Operacao.query.filter_by(id=id).first()
+    return operacao
+
+
+def excluir_operacao(operacao):
+    db.session.delete(operacao)
+    db.session.commit()
+    conta_service.altera_saldo_conta(operacao.conta_id, operacao, 3)
